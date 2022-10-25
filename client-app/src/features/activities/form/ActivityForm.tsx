@@ -1,13 +1,15 @@
+import { observer } from "mobx-react-lite";
 import React, { ChangeEvent, useState } from "react";
 import { Button, Form, Segment } from "semantic-ui-react";
 import { Activity } from "../../../app/models/activity";
+import { useStore } from "../../../app/stores/store";
 interface Props{
-    formClose:()=>void;
     selectedActivity : Activity | undefined;
-    addOrEditActivity: (activity:Activity) => void;
-    submitting:boolean;
 }
-export default function ActivityForm({formClose,selectedActivity,addOrEditActivity,submitting}:Props){
+export default observer(function ActivityForm({selectedActivity}:Props){
+
+    const {activityStore}= useStore();
+    const {closeForm,createActivity,updateActivity,loading}= activityStore;
 
     const initialState = selectedActivity ?? {
         id:'',
@@ -18,7 +20,6 @@ export default function ActivityForm({formClose,selectedActivity,addOrEditActivi
         city:'',
         venue:''
     };
-
     const [activity,setActivity]=useState(initialState);
 
     function onchangeInput(evnt:ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)
@@ -29,7 +30,7 @@ export default function ActivityForm({formClose,selectedActivity,addOrEditActivi
 
     function handleSubmit()
     {
-        addOrEditActivity(activity);
+        activity.id ? updateActivity(activity):createActivity(activity);
     }
 
     return (
@@ -41,9 +42,9 @@ export default function ActivityForm({formClose,selectedActivity,addOrEditActivi
                 <Form.Input type="date" placeholder="Date" name='date' value={activity.date} onChange={onchangeInput}></Form.Input>
                 <Form.Input placeholder="City" name='city' value={activity.city} onChange={onchangeInput}></Form.Input>
                 <Form.Input placeholder="Venue" name='venue' value={activity.venue} onChange={onchangeInput}></Form.Input>
-                <Button loading={submitting} positive floated="right" type="submit" content="Submit"></Button>
-                <Button floated="right" type="button" onClick={formClose} content="Cancel"></Button>
+                <Button loading={loading} positive floated="right" type="submit" content="Submit"></Button>
+                <Button floated="right" type="button" onClick={()=>closeForm()} content="Cancel"></Button>
             </Form>
         </Segment>
     )
-}
+})
