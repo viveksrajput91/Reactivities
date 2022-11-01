@@ -32,7 +32,8 @@ const Activities={
     list:()=>request.get<Activity[]>('/activities'),
     create:(actvity:Activity)=>request.post<void>('/activities',actvity),
     update:(activity:Activity)=>request.put<void>(`/activities/${activity.id}`,activity),
-    delete:(id:string)=>request.delete(`/activities/${id}`)
+    delete:(id:string)=>request.delete(`/activities/${id}`),
+    details:(id:string)=>request.get<Activity>(`activities/${id}`)
 }
 
 const agent={

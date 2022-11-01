@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
-import React from "react";
-import { Grid, GridColumn, List, ListItem } from "semantic-ui-react";
-import { Activity } from "../../../app/models/activity";
+import { useEffect } from "react";
+import { Grid, GridColumn } from "semantic-ui-react";
+import Loading from "../../../app/layout/loading";
 import { useStore } from "../../../app/stores/store";
 import ActivityDetails from "../details/ActivityDetails";
 import ActivityForm from "../form/ActivityForm";
@@ -11,7 +11,15 @@ import ActivityList from "./ActivityList";
 export default observer(function ActvityDashboard() {
 
     const { activityStore } = useStore();
-    const { openForm, selectedActivity, addEditMode } = activityStore;
+    const { loadActivities, activityRegistry } = activityStore;
+
+    useEffect(() => {
+        if(activityRegistry.size <= 1) loadActivities();
+      }, [activityRegistry.size,loadActivities])
+    
+      if(activityStore.initialLoading){
+        return <Loading></Loading>
+      }
 
     return (
         <Grid>
@@ -19,13 +27,7 @@ export default observer(function ActvityDashboard() {
                 <ActivityList></ActivityList>
             </GridColumn>
             <GridColumn width={6}>
-                {
-                    selectedActivity && !addEditMode &&
-                    <ActivityDetails></ActivityDetails>
-                }
-                {
-                    addEditMode && <ActivityForm selectedActivity={selectedActivity}></ActivityForm>
-                }
+                <h2>Activities Filter</h2>
             </GridColumn>
         </Grid>
     )

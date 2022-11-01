@@ -1,17 +1,18 @@
 import { observer } from "mobx-react-lite";
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
+import { Link, useHistory, useParams } from "react-router-dom";
 import { Button, Form, Segment } from "semantic-ui-react";
-import { Activity } from "../../../app/models/activity";
+import Loading from "../../../app/layout/loading";
 import { useStore } from "../../../app/stores/store";
-interface Props{
-    selectedActivity : Activity | undefined;
-}
-export default observer(function ActivityForm({selectedActivity}:Props){
+import { v4 as uuid} from 'uuid';
+
+export default observer(function ActivityForm(){
 
     const {activityStore}= useStore();
-    const {closeForm,createActivity,updateActivity,loading}= activityStore;
-
-    const initialState = selectedActivity ?? {
+    const {createActivity, initialLoading, loadActivity, updateActivity,loading}= activityStore;
+    const {id}=useParams<{id:string}>();
+    const history = useHistory();
+    const [activity,setActivity]=useState({
         id:'',
         title:'',
         description:'',
@@ -19,8 +20,11 @@ export default observer(function ActivityForm({selectedActivity}:Props){
         date:'',
         city:'',
         venue:''
-    };
-    const [activity,setActivity]=useState(initialState);
+    });
+
+    useEffect(()=>{
+        if(id) loadActivity(id).then(activity => setActivity(activity!));
+    },[id, loadActivity])
 
     function onchangeInput(evnt:ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)
     {
@@ -30,8 +34,24 @@ export default observer(function ActivityForm({selectedActivity}:Props){
 
     function handleSubmit()
     {
-        activity.id ? updateActivity(activity):createActivity(activity);
+        if(activity.id.length===0)
+        {
+            let newActivity = {
+                ...activity,
+                id : uuid()
+            }
+            createActivity(newActivity).then(()=>{
+                history.push(`activities/${newActivity.id}`);
+            })
+        }
+        else
+        {
+            updateActivity(activity);
+            history.push(`/activities/${activity.id}`);
+        }
     }
+
+    if(initialLoading && id) return <Loading></Loading>;
 
     return (
         <Segment clearing>
@@ -43,7 +63,7 @@ export default observer(function ActivityForm({selectedActivity}:Props){
                 <Form.Input placeholder="City" name='city' value={activity.city} onChange={onchangeInput}></Form.Input>
                 <Form.Input placeholder="Venue" name='venue' value={activity.venue} onChange={onchangeInput}></Form.Input>
                 <Button loading={loading} positive floated="right" type="submit" content="Submit"></Button>
-                <Button floated="right" type="button" onClick={()=>closeForm()} content="Cancel"></Button>
+                <Button as={Link} to='/activities' floated="right" type="button" content="Cancel"></Button>
             </Form>
         </Segment>
     )
