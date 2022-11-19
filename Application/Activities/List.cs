@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Core;
 using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +12,12 @@ namespace Application.Activities
 {
     public class List
     {
-        public class Query : IRequest<IReadOnlyList<Activity>>
+        public class Query : IRequest<Result<IReadOnlyList<Activity>>>
         {
 
         }
 
-        public class Handler : IRequestHandler<Query, IReadOnlyList<Activity>>
+        public class Handler : IRequestHandler<Query, Result<IReadOnlyList<Activity>>>
         {
             private readonly DataContext _dataContext;
             public Handler(DataContext dataContext)
@@ -24,9 +25,10 @@ namespace Application.Activities
                 _dataContext = dataContext;
             }
             
-            public async Task<IReadOnlyList<Activity>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<Result<IReadOnlyList<Activity>>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _dataContext.Activities.ToListAsync();
+                var activities = await _dataContext.Activities.ToListAsync();
+                return Result<IReadOnlyList<Activity>>.Success(activities);
             }
         }
     }
